@@ -1,22 +1,32 @@
 package main
 
 import (
+	"fmt"
 	"strconv"
 
 	"github.com/Olegas/goaocd"
 )
 
-// Test solution for 2021 Day 1 Part 1
 func main() {
-	var input = goaocd.Lines(2021, 1)
-	var lastNum, _ = strconv.Atoi(input[0])
-	var sum = 0
-	for i := 1; i < len(input); i++ {
-		var n, _ = strconv.Atoi(input[i])
-		if n > lastNum {
-			sum += 1
+	var input = goaocd.Lines(1)
+	var ans = 0
+	var pos = 50
+	for _, l := range input {
+		fmt.Println(l)
+		var dir, num = l[0], l[1:]
+		var step, _ = strconv.Atoi(num)
+		if dir == 'R' {
+			pos += step
 		}
-		lastNum = n
+		if dir == 'L' {
+			pos -= step
+		}
+		pos = (pos + 100) % 100
+		if pos == 0 {
+			ans++
+		}
+		fmt.Print(pos, " ", ans, "\n")
 	}
-	goaocd.Submit(1, sum, 2021, 1)
+	fmt.Println(ans)
+	//goaocd.Submit(1, pos, 1)
 }
