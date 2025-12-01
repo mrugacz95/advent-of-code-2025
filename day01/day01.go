@@ -15,18 +15,19 @@ func main() {
 		fmt.Println(l)
 		var dir, num = l[0], l[1:]
 		var step, _ = strconv.Atoi(num)
-		if dir == 'R' {
-			pos += step
-		}
+		var delta = 1
 		if dir == 'L' {
-			pos -= step
+			delta = -1
 		}
-		pos = (pos + 100) % 100
-		if pos == 0 {
-			ans++
+		for range step {
+			pos += delta
+			pos = (pos + 100) % 100
+			if pos == 0 {
+				ans += 1
+			}
 		}
 		fmt.Print(pos, " ", ans, "\n")
 	}
 	fmt.Println(ans)
-	//goaocd.Submit(1, pos, 1)
+	goaocd.Submit(2, ans, 1)
 }
