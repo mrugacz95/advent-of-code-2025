@@ -59,6 +59,39 @@ func part2(inputData string) int {
 	return sum
 }
 
+const batteriesTurnedOn = 12
+
+func maxJoltageFaster(bank []int) int {
+	var number []int
+	for i, b := range bank {
+		if len(number)+len(bank)-i == batteriesTurnedOn || len(number) == 0 {
+			number = append(number, b)
+			continue
+		}
+		if b <= number[len(number)-1] && len(number) == batteriesTurnedOn {
+			continue
+		}
+		for len(number) > 0 && b > number[len(number)-1] && len(number)+len(bank)-i > batteriesTurnedOn {
+			number = number[:len(number)-1]
+		}
+		number = append(number, b)
+	}
+	var maxNum = 0
+	for _, n := range number {
+		maxNum = maxNum*10 + n
+	}
+	return maxNum
+}
+
+func part2Faster(inputData string) int {
+	var input = parse(inputData)
+	var sum = 0
+	for _, bank := range input {
+		sum += maxJoltageFaster(bank)
+	}
+	return sum
+}
+
 const day = 3
 const year = 2025
 
@@ -67,10 +100,14 @@ func main() {
 811111111111119
 234234234234278
 818181911112111`
-	utils.Assert(357, part1(testInput))
+
+	//utils.Assert(357, part1(testInput))
 
 	var input = goaocd.Input(year, day)
 	goaocd.Submit(1, part1(input), year, day)
+
+	utils.Assert(3121910778619, part2Faster(testInput))
+	goaocd.Submit(2, part2Faster(input), year, day)
 
 	utils.Assert(3121910778619, part2(testInput))
 	goaocd.Submit(2, part2(input), year, day)
