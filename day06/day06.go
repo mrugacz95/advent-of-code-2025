@@ -110,5 +110,3 @@ func main() {
 	utils.Assert(3263827, part2(testInput))
 	goaocd.Submit(2, part2(input), year, day)
 }
-
-// too low 3734012
