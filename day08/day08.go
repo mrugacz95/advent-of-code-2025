@@ -103,6 +103,20 @@ func closest(arr [][]int) Closest {
 	return Closest{first: first, second: second, distance: minVal}
 }
 
+func joinClosest(distances *[][]int, parents *[]int) Closest {
+	current := closest(*distances)
+	if current.distance == math.MaxInt {
+		return current
+	}
+
+	(*distances)[current.first][current.second] = math.MaxInt
+	(*distances)[current.second][current.first] = math.MaxInt
+
+	union(parents, current.first, current.second)
+
+	return current
+}
+
 func part1(inputData string, rounds int) int {
 	var positions = parse(inputData)
 
@@ -110,14 +124,7 @@ func part1(inputData string, rounds int) int {
 	var distances = calcDistances(positions)
 
 	for i := 0; i < rounds; i++ {
-		current := closest(distances)
-
-		println("Closest:", positions[current.first].String(), " ", current.first, " x ", positions[current.second].String(), " ", current.second, "Distance:", current.distance)
-		union(&parents, current.first, current.second)
-		println("New parents ", parents[current.first], " and ", parents[current.second])
-
-		distances[current.first][current.second] = math.MaxInt
-		distances[current.second][current.first] = math.MaxInt
+		joinClosest(&distances, &parents)
 	}
 
 	groups := make(map[int]int)
@@ -140,9 +147,44 @@ func part1(inputData string, rounds int) int {
 	return ans
 }
 
+func joinOrder(positions []Position) []Closest {
+	var distances []Closest
+	for i := 0; i < len(positions); i++ {
+		for j := 0; j < len(positions); j++ {
+			if i == j {
+				continue
+			}
+			distances = append(distances, Closest{first: i, second: j, distance: distance(positions[i], positions[j])})
+		}
+	}
+
+	sort.Slice(distances, func(i, j int) bool {
+		return distances[i].distance < distances[j].distance
+	})
+	return distances
+}
+
 func part2(inputData string) int {
-	//var input = parse(inputData)
-	return 0
+	var positions = parse(inputData)
+
+	var parents = initParents(len(positions))
+
+	var order = joinOrder(positions)
+
+	var lastPair Closest
+	for _, join := range order {
+
+		if findParent(&parents, join.first) == findParent(&parents, join.second) {
+			continue
+		}
+
+		union(&parents, join.first, join.second)
+
+		println("Joined:", join.first, join.second, "Distance:", join.distance)
+		lastPair = join
+	}
+
+	return positions[lastPair.first].x * positions[lastPair.second].x
 }
 
 const day = 8
@@ -172,6 +214,6 @@ func main() {
 	var input = goaocd.Input(year, day)
 	utils.Assert(40, part1(testInput, 10))
 	goaocd.Submit(1, part1(input, 1000), year, day)
-	utils.Assert(-1, part2(testInput))
+	utils.Assert(25272, part2(testInput))
 	goaocd.Submit(2, part2(input), year, day)
 }
