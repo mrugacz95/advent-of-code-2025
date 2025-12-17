@@ -3,6 +3,7 @@ package main
 import (
 	"advent-of-code-2025/utils"
 	"container/heap"
+	"math"
 	"strconv"
 	"strings"
 
@@ -145,18 +146,6 @@ func part1(inputData string) int {
 	return minMoves
 }
 
-func Equal(a []int, b []int) bool {
-	if len(a) != len(b) {
-		return false
-	}
-	for i := 0; i < len(a); i++ {
-		if a[i] != b[i] {
-			return false
-		}
-	}
-	return true
-}
-
 func Hash(a []int) int {
 	hash := 0
 	for i := 0; i < len(a); i++ {
@@ -211,23 +200,53 @@ func part2Slow(inputData string) int {
 func part2Fast(inputData string) int {
 	var input = parse(inputData)
 	clicks := 0
-	for _, machine := range input {
 
-		// todo adjust based on machine.buttonValues and machine.voltage
-		lp := golp.NewLP(6, machine.length)
-		_ = lp.AddConstraintSparse([]golp.Entry{{4, 1.0}, {5, 1.0}}, golp.EQ, 3.0)
-		_ = lp.AddConstraintSparse([]golp.Entry{{1, 1.0}, {5, 1.0}}, golp.EQ, 5.0)
-		_ = lp.AddConstraintSparse([]golp.Entry{{0, 1.0}, {2, 1.0}, {3, 1.0}}, golp.EQ, 4.0)
-		_ = lp.AddConstraintSparse([]golp.Entry{{1, 1.0}, {3, 1.0}, {4, 1.0}}, golp.EQ, 7.0)
-		lp.SetObjFn([]float64{1.0, 1.0, 1.0, 1.0, 1.0, 1.0})
-		lp.SetInt(1, true)
-		lp.SetInt(2, true)
-		lp.SetInt(4, true)
-		lp.SetInt(5, true)
-		lp.SetInt(6, true)
+	for _, machine := range input {
+		lp := golp.NewLP(machine.length, machine.cols)
+
+		for row := range machine.length {
+			var rowEntries []golp.Entry
+			for col, values := range machine.buttonsValues {
+				buttonPresent := false
+				for i := 0; i < len(values); i++ {
+					if values[i] == row {
+						buttonPresent = true
+						break
+					}
+				}
+				if buttonPresent {
+					rowEntries = append(rowEntries, golp.Entry{Col: col, Val: 1.0})
+				}
+			}
+
+			_ = lp.AddConstraintSparse(rowEntries, golp.EQ, float64(machine.voltage[row]))
+		}
+		var objFn = make([]float64, machine.cols)
+		for col := range machine.cols {
+			objFn[col] = 1.0
+			lp.SetInt(col, true)
+		}
+		lp.SetObjFn(objFn)
 		lp.Solve()
 
-		clicks += int(lp.Objective())
+		// additional check
+		vars := lp.Variables()
+		var sum = 0
+		result := make([]int, machine.length)
+		for col, buttons := range machine.buttonsValues {
+			for _, b := range buttons {
+				result[b] += int(vars[col])
+			}
+			sum += int(vars[col])
+		}
+		for i := range machine.length {
+			if result[i] != machine.voltage[i] {
+				println("Something is wrong ", i, result[i])
+				panic("Something is wrong")
+			}
+		}
+
+		clicks += int(math.Round(lp.Objective()))
 	}
 	return clicks
 }
@@ -241,9 +260,11 @@ func main() {
 [.###.#] (0,1,2,3,4) (0,3,4) (0,1,2,4,5) (1,2) {10,11,11,5,10,5}`
 
 	var input = goaocd.Input(year, day)
-	//utils.Assert(7, part1(testInput))
-	//goaocd.Submit(1, part1(input), year, day)
+	utils.Assert(7, part1(testInput))
+	goaocd.Submit(1, part1(input), year, day)
 	utils.Assert(33, part2Slow(testInput))
 	println("Test for part 2 passed")
+	utils.Assert(33, part2Fast(testInput))
+	println("Test for fast part 2 passed")
 	goaocd.Submit(2, part2Fast(input), year, day)
 }
