@@ -127,6 +127,4 @@ func main() {
 	var input = goaocd.Input(year, day)
 	utils.Assert(3, part1(testInput)) // estimation is 3
 	goaocd.Submit(1, part1(input), year, day)
-	utils.Assert(-1, part2(testInput))
-	goaocd.Submit(2, part2(input), year, day)
 }
