@@ -40,13 +40,12 @@ func part1(inputData string) int {
 }
 
 func maxJoltage(used int, bank []int, value int, startIndex int, currentMax int) int {
-	if used == 12 || startIndex >= len(bank) || currentMax > value*int(math.Pow(10, float64(12-used))) {
+	if used == 12 || startIndex >= len(bank) || currentMax/int(math.Pow(10, float64(12-used))) > value {
 		return value
 	}
-	var maxNum = 0
-	for i := startIndex; i < len(bank); i++ {
-		maxNum = max(maxNum, maxJoltage(used+1, bank, value*10+bank[i], i+1, maxNum))
-	}
+	maxNum := 0
+	maxNum = maxJoltage(used, bank, value, startIndex+1, maxNum)
+	maxNum = max(maxNum, maxJoltage(used+1, bank, value*10+bank[startIndex], startIndex+1, maxNum))
 	return maxNum
 }
 
@@ -96,19 +95,16 @@ const day = 3
 const year = 2025
 
 func main() {
-	var testInput = `987654321111111
-811111111111119
-234234234234278
-818181911112111`
-
-	//utils.Assert(357, part1(testInput))
+	var testInput = `818181911112111`
+	utils.Assert(357, part1(testInput))
 
 	var input = goaocd.Input(year, day)
+	println(part1(input))
 	goaocd.Submit(1, part1(input), year, day)
 
 	utils.Assert(3121910778619, part2Faster(testInput))
 	goaocd.Submit(2, part2Faster(input), year, day)
 
-	utils.Assert(3121910778619, part2(testInput))
+	utils.Assert(888911112111, part2(testInput))
 	goaocd.Submit(2, part2(input), year, day)
 }
